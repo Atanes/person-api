@@ -40,7 +40,7 @@ public class PersonService {
 
     public PersonDTO findById(Long id) throws PersonNotFoundException {
         //Optional<Person> optionalPerson = personRepository.findById(id);
-        Person person = personRepository.findById(id).orElseThrow(()->new PersonNotFoundException(id));
+        Person person = verifyIfExists(id);
 
 //        if(optionalPerson.isEmpty()){
 //            throw new PersonNotFoundException(id)
@@ -48,5 +48,24 @@ public class PersonService {
 //        return personMapper.toDTO(optionalPerson.get());
 
         return personMapper.toDTO(person);
+    }
+
+    private Person verifyIfExists(Long id) throws PersonNotFoundException {
+        return personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+    }
+
+    public void deleteById(Long id) throws PersonNotFoundException {
+        Person person = verifyIfExists(id);
+        personRepository.delete(person);
+    }
+
+    public MessageResponseDTO updateById(Long id, PersonDTO personDTO) throws PersonNotFoundException {
+        verifyIfExists(id);
+        Person personToUpdate = personMapper.toModel(personDTO);
+        Person personSaved = this.personRepository.save(personToUpdate);
+        return MessageResponseDTO
+                .builder()
+                .message("Person with ID : " + personSaved.getId() + " was updated with success!")
+                .build();
     }
 }
